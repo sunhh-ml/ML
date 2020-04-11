@@ -7,3 +7,4 @@
 # @Software     : PyCharm
 # @Project      : ml
 
+print('这个用来测试不同project，是否均能连上git')
