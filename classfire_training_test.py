@@ -48,7 +48,7 @@ def imshow(img):
 dataiter = iter(trainloader)
 images, labels = dataiter.next()
 # show images
-imshow(torchvision.utils.make_grid(images))         # 以格子形式显示多张图片
+imshow(torchvision.utils.make_grid(images))  # 以格子形式显示多张图片
 # print labels
 print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
 
@@ -58,7 +58,7 @@ class Net(nn.Module):  # nn.Module是所有神经网络的基类，我们自己�
         super(Net, self).__init__()  # 第二、三行都是python类继承的基本操作,此写法应该是python2.7的继承格式,但python3里写这个好像也可以
         self.conv1 = nn.Conv2d(3, 6, 5)  # 添加第一个卷积层,调用了nn里面的Conv2d（）
         self.pool = nn.MaxPool2d(2, 2)  # 最大池化层
-        self.conv2 = nn.Conv2d(6, 16, 5)    #   输入是6通道的图像，输出是16通道，也就是16个卷积核，卷积核是5*5
+        self.conv2 = nn.Conv2d(6, 16, 5)  # 输入是6通道的图像，输出是16通道，也就是16个卷积核，卷积核是5*5
         self.fc1 = nn.Linear(16 * 5 * 5, 120)  # 接着三个全连接层
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 10)
@@ -120,7 +120,6 @@ outputs = net(images)
 _, predicted = torch.max(outputs, 1)
 print('Predicted: ', ' '.join('%5s' % classes[predicted[j]] for j in range(4)))
 
-
 #   查看网络对整个数据集的性能
 correct = 0
 total = 0
@@ -134,7 +133,7 @@ with torch.no_grad():
 print('Accuracy of the network on the 10000 test images: %d %%' % (100 * correct / total))
 
 #   查看哪些类表现好，哪些不好
-class_correct = list(0. for i in range(10))     # 一共10类
+class_correct = list(0. for i in range(10))  # 一共10类
 class_totle = list(0. for i in range(10))
 with torch.no_grad():
     for data in testloader:
