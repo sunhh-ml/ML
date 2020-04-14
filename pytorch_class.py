@@ -71,7 +71,7 @@ for f in net.parameters():
     print(loss)
 
 #
-# loss = criterion(output, target)
+# loss = criteria(output, target)
 # print(loss)
 
 # print(loss.grad_fn)  # MSELoss

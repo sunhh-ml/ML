@@ -16,6 +16,7 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import numpy as np
 
+EPOCH = 2
 data_adress = 'E:\\ML_data\\CIFAR10\\'
 #   Normalize第一个（）内表示图片RGB三通道的均值，第二个表示RGB三通道的标准差，若为自己的图片数据要自行计算，
 #   或是采用pytorch的推荐值mean=[0.485， 0.456， 0.406]，std=[0.229, 0.224, 0.225]
@@ -56,16 +57,29 @@ print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
 class Net(nn.Module):  # nn.Module是所有神经网络的基类，我们自己定义任何神经网络，都要继承nn.Module! 即class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()  # 第二、三行都是python类继承的基本操作,此写法应该是python2.7的继承格式,但python3里写这个好像也可以
-        self.conv1 = nn.Conv2d(3, 8, 5)  # 添加第一个卷积层,调用了nn里面的Conv2d，二维卷积方法，常用于处理图片，conv1d常用语处理文本
-        self.pool = nn.MaxPool2d(2, 2)  # 最大池化层
-        self.conv2 = nn.Conv2d(8, 16, 5)  # 输入是6通道的图像，输出是16通道，也就是16个卷积核，卷积核是5*5
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)  # 接着三个全连接层
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
+        self.conv1 = nn.Conv2d(in_channels=3, out_channels=16, kernel_size=5,
+                               stride=1,
+                               padding=0, padding_mode='zeros',
+                               dilation=1,
+                               groups=1,
+                               bias=True)
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.conv2 = nn.Conv2d(in_channels=3, out_channels=16, kernel_size=5,
+                               stride=1,
+                               padding=0, padding_mode='zeros',
+                               dilation=1,
+                               groups=1,
+                               bias=True)
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        # self.conv3 = nn.Conv2d(10, 16, 5)
+        self.fc1 = nn.Linear(16 * 5 * 5, 120)  # conv2输出16个通道，size为5*5,120自行设置
+        self.fc2 = nn.Linear(120, 84)  # 之所以使用84个神经元，是因为有人曾将 ASCII 码绘制于[12*7]的 bit-map 上，LeNet-5作者希望此层的输出有类似的效果
+        self.fc3 = nn.Linear(84, 10)    # 10是最后分类共10类，若为CIFAR100则为100
 
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))  # F是torch.nn.functional的别名，这里调用了relu函数 F.relu()
         x = self.pool(F.relu(self.conv2(x)))
+        # x = self.pool(F.relu(self.conv3(x)))
         x = x.view(-1, 16 * 5 * 5)  # .view( )是一个tensor的方法，使得tensor改变size但是元素的总数是不变的。
         #  那么为什么这里只关心列数不关心行数呢，因为马上就要进入全连接层了，而全连接层说白了就是矩阵乘法，
         #  你会发现第一个全连接层的首参数是16*5*5，所以要保证能够相乘，在矩阵乘法之前就要把x调到正确的size
@@ -76,10 +90,11 @@ class Net(nn.Module):  # nn.Module是所有神经网络的基类，我们自己�
 
 
 net = Net()
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+criteria = nn.CrossEntropyLoss()
 
-for epoch in range(2):  # loop over the dataset multiple times
+optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9, nesterov=False)
+# optimizer = optim.Adam(net.parameters(), lr=0.001, betas=(0.9, 0.999))
+for epoch in range(EPOCH):  # 所有数据遍历次数，相当于训练次数
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
         # get the inputs; data is a list of [inputs, labels]
@@ -89,7 +104,7 @@ for epoch in range(2):  # loop over the dataset multiple times
         optimizer.zero_grad()
         # forward + backward + optimize
         outputs = net(inputs)
-        loss = criterion(outputs, labels)
+        loss = criteria(outputs, labels)
         loss.backward()
         optimizer.step()
 
@@ -139,7 +154,7 @@ with torch.no_grad():
     for data in testloader:
         images, labels = data
         outputs = net(images)
-        _, predicted = torch.max(outputs, 1)
+        _, predicted = torch.max(outputs, 1)  # 返回每一行(0为列)中最大值的那个元素，且返回其索引
         c = (predicted == labels).squeeze()
         for i in range(4):
             label = labels[i]
