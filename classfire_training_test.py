@@ -57,24 +57,30 @@ print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
 class Net(nn.Module):  # nn.Module是所有神经网络的基类，我们自己定义任何神经网络，都要继承nn.Module! 即class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()  # 第二、三行都是python类继承的基本操作,此写法应该是python2.7的继承格式,但python3里写这个好像也可以
-        self.conv1 = nn.Conv2d(in_channels=3, out_channels=16, kernel_size=5,
+        self.conv1 = nn.Conv2d(in_channels=3, out_channels=6, kernel_size=5,
                                stride=1,
                                padding=0, padding_mode='zeros',
                                dilation=1,
                                groups=1,
                                bias=True)
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.conv2 = nn.Conv2d(in_channels=3, out_channels=16, kernel_size=5,
+        self.conv2 = nn.Conv2d(in_channels=6, out_channels=16, kernel_size=5,
                                stride=1,
                                padding=0, padding_mode='zeros',
                                dilation=1,
                                groups=1,
                                bias=True)
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
-        # self.conv3 = nn.Conv2d(10, 16, 5)
+        # self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        # self.conv3 = nn.Conv2d(in_channels=8, out_channels=16, kernel_size=5,
+        #                        stride=1,
+        #                        padding=0, padding_mode='zeros',
+        #                        dilation=1,
+        #                        groups=1,
+        #                        bias=True)
         self.fc1 = nn.Linear(16 * 5 * 5, 120)  # conv2输出16个通道，size为5*5,120自行设置
         self.fc2 = nn.Linear(120, 84)  # 之所以使用84个神经元，是因为有人曾将 ASCII 码绘制于[12*7]的 bit-map 上，LeNet-5作者希望此层的输出有类似的效果
         self.fc3 = nn.Linear(84, 10)    # 10是最后分类共10类，若为CIFAR100则为100
+        # self.fc4 = nn.Linear(42, 10)
 
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))  # F是torch.nn.functional的别名，这里调用了relu函数 F.relu()
@@ -85,6 +91,7 @@ class Net(nn.Module):  # nn.Module是所有神经网络的基类，我们自己�
         #  你会发现第一个全连接层的首参数是16*5*5，所以要保证能够相乘，在矩阵乘法之前就要把x调到正确的size
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
+        # x = F.relu(self.fc3(x))
         x = self.fc3(x)
         return x
 
