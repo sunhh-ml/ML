@@ -15,8 +15,10 @@ import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import numpy as np
+from def_store import Net
 
-EPOCH = 2
+EPOCH = 10
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 data_adress = 'E:\\ML_data\\CIFAR10\\'
 #   Normalize第一个（）内表示图片RGB三通道的均值，第二个表示RGB三通道的标准差，若为自己的图片数据要自行计算，
 #   或是采用pytorch的推荐值mean=[0.485， 0.456， 0.406]，std=[0.229, 0.224, 0.225]
@@ -49,51 +51,38 @@ def imshow(img):
 dataiter = iter(trainloader)
 images, labels = dataiter.next()
 # show images
-imshow(torchvision.utils.make_grid(images))  # 以格子形式显示多张图片
-# print labels
-print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
+# imshow(torchvision.utils.make_grid(images))  # 以格子形式显示多张图片
+# # print labels
+# print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
 
 
-class Net(nn.Module):  # nn.Module是所有神经网络的基类，我们自己定义任何神经网络，都要继承nn.Module! 即class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()  # 第二、三行都是python类继承的基本操作,此写法应该是python2.7的继承格式,但python3里写这个好像也可以
-        self.conv1 = nn.Conv2d(in_channels=3, out_channels=6, kernel_size=5,
-                               stride=1,
-                               padding=0, padding_mode='zeros',
-                               dilation=1,
-                               groups=1,
-                               bias=True)
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.conv2 = nn.Conv2d(in_channels=6, out_channels=16, kernel_size=5,
-                               stride=1,
-                               padding=0, padding_mode='zeros',
-                               dilation=1,
-                               groups=1,
-                               bias=True)
-        # self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
-        # self.conv3 = nn.Conv2d(in_channels=8, out_channels=16, kernel_size=5,
-        #                        stride=1,
-        #                        padding=0, padding_mode='zeros',
-        #                        dilation=1,
-        #                        groups=1,
-        #                        bias=True)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)  # conv2输出16个通道，size为5*5,120自行设置
-        self.fc2 = nn.Linear(120, 84)  # 之所以使用84个神经元，是因为有人曾将 ASCII 码绘制于[12*7]的 bit-map 上，LeNet-5作者希望此层的输出有类似的效果
-        self.fc3 = nn.Linear(84, 10)    # 10是最后分类共10类，若为CIFAR100则为100
-        # self.fc4 = nn.Linear(42, 10)
-
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))  # F是torch.nn.functional的别名，这里调用了relu函数 F.relu()
-        x = self.pool(F.relu(self.conv2(x)))
-        # x = self.pool(F.relu(self.conv3(x)))
-        x = x.view(-1, 16 * 5 * 5)  # .view( )是一个tensor的方法，使得tensor改变size但是元素的总数是不变的。
-        #  那么为什么这里只关心列数不关心行数呢，因为马上就要进入全连接层了，而全连接层说白了就是矩阵乘法，
-        #  你会发现第一个全连接层的首参数是16*5*5，所以要保证能够相乘，在矩阵乘法之前就要把x调到正确的size
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        # x = F.relu(self.fc3(x))
-        x = self.fc3(x)
-        return x
+# class Net(nn.Module):  # nn.Module是所有神经网络的基类，我们自己定义任何神经网络，都要继承nn.Module! 即class Net(nn.Module):
+#     def __init__(self):
+#         super(Net, self).__init__()  # 第二、三行都是python类继承的基本操作,此写法应该是python2.7的继承格式,但python3里写这个好像也可以
+#         #  输入  3*32*32
+#         self.conv1 = nn.Conv2d(3, 3, 3, stride=1, padding=0, dilation=1, groups=1)
+#         self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1)
+#         # self.conv2 = nn.Conv2d(64, 32, 3, padding=0)  # 32*13*13
+#         # self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)  # 32*6*6
+#         # self.conv3 = nn.Conv2d(32, 16, 3)   # 16*4*14
+#         # self.pool3 = nn.MaxPool2d(2, 2)     # 16*2*2
+#         self.fc1 = nn.Linear(16 * 2 * 2, 512)  # conv2输出16个通道，size为5*5,120自行设置
+#         self.fc2 = nn.Linear(512, 128)  # 之所以使用84个神经元，是因为有人曾将 ASCII 码绘制于[12*7]的 bit-map 上，LeNet-5作者希望此层的输出有类似的效果
+#         self.fc3 = nn.Linear(128, 10)  # 10是最后分类共10类，若为CIFAR100则为100
+#
+#     def forward(self, x):
+#         x = x.to(device)
+#         x = self.pool1(F.relu(self.conv1(x)))  # F是torch.nn.functional的别名，这里调用了relu函数 F.relu()
+#         # x = self.pool2(F.relu(self.conv2(x)))
+#         # x = self.pool3(F.relu(self.conv3(x)))
+#         print(x.shape)
+#         x = x.view(-1, 16 * 2 * 2)  # .view( )是一个tensor的方法，使得tensor改变size但是元素的总数是不变的。
+#         #  那么为什么这里只关心列数不关心行数呢，因为马上就要进入全连接层了，而全连接层说白了就是矩阵乘法，
+#         #  你会发现第一个全连接层的首参数是16*5*5，所以要保证能够相乘，在矩阵乘法之前就要把x调到正确的size
+#         x = F.relu(self.fc1(x))
+#         x = F.relu(self.fc2(x))
+#         x = self.fc3(x)
+#         return x
 
 
 net = Net()
@@ -105,7 +94,7 @@ for epoch in range(EPOCH):  # 所有数据遍历次数，相当于训练次数
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
         # get the inputs; data is a list of [inputs, labels]
-        inputs, labels = data
+        inputs, labels = data[0].to(device), data[1].to(device)
 
         # zero the parameter gradients
         optimizer.zero_grad()
@@ -170,3 +159,7 @@ with torch.no_grad():
 
 for i in range(10):
     print('Accuracy of %5s : %2d %%' % (classes[i], 100 * class_correct[i] / class_totle[i]))
+
+#   重新保存
+net = Net()
+net.load_state_dict((torch.load(PATH)))
